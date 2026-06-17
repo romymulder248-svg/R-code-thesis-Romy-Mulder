@@ -23,13 +23,13 @@ start_col <- which(names(df) == "participant_number")
 df_clean <- df[, start_col:ncol(df)]
 
 
-#welke Items horen bij valentie, pre en post
-pre_valentie_cols <- c(
+#welke Items horen bij valence, pre en post
+pre_valence_cols <- c(
   "pre_vr_unhappy_vs_happy", "pre_vr_annoyed_vs_pleased",
   "pre_vr_unsatisfied_vs_satisfied", "pre_vr_melancholic_vs_controlled",
   "pre_vr_bored_vs_relaxed"
 )
-post_valentie_cols <- c(
+post_valence_cols <- c(
   "post_vr_unhappy_vs_happy", "post_vr_annoyed_vs_pleased",
   "post_vr_unsatisfied_vs_satisfied", "post_vr_melancholic_vs_controlled",
   "post_vr_bored_vs_relaxed"
@@ -60,7 +60,7 @@ post_dominance_cols <- c(
 )
 
 #een grote lijst van alle kolomnamen die bij de SAM-schalen horen 
-sd_cols <- c(pre_valentie_cols, post_valentie_cols,
+sd_cols <- c(pre_valence_cols, post_valence_cols,
              pre_arousal_cols,  post_arousal_cols,
              pre_dominance_cols, post_dominance_cols)
 
@@ -81,13 +81,13 @@ df_clean[sd_cols] <- lapply(df_clean[sd_cols], as.numeric)
 sd_summary <- df_clean %>%
   select(participant_number, age, gender) %>%
   mutate(
-    pre_valentie   = rowMeans(df_clean[, pre_valentie_cols],  na.rm = TRUE),
+    pre_valence   = rowMeans(df_clean[, pre_valence_cols],  na.rm = TRUE),
     pre_arousal    = rowMeans(df_clean[, pre_arousal_cols],   na.rm = TRUE),
     pre_dominance  = rowMeans(df_clean[, pre_dominance_cols], na.rm = TRUE),
-    post_valentie  = rowMeans(df_clean[, post_valentie_cols],  na.rm = TRUE),
+    post_valence  = rowMeans(df_clean[, post_valence_cols],  na.rm = TRUE),
     post_arousal   = rowMeans(df_clean[, post_arousal_cols],   na.rm = TRUE),
     post_dominance = rowMeans(df_clean[, post_dominance_cols], na.rm = TRUE),
-    delta_valentie  = post_valentie  - pre_valentie,
+    delta_valence  = post_valence  - pre_valence,
     delta_arousal   = post_arousal   - pre_arousal,
     delta_dominance = post_dominance - pre_dominance
   )
@@ -108,10 +108,10 @@ cat("\n✓ SD dataset opgeslagen als 'sd_summary.csv'\n")
 
 #elke schaal mini-dataframe, voor elke schaal apart de betrouwbaarheid berekenen.
 scales <- list(
-  Pre_Valence   = df_clean[, pre_valentie_cols],
+  Pre_Valence   = df_clean[, pre_valence_cols],
   Pre_Arousal   = df_clean[, pre_arousal_cols],
   Pre_Dominance = df_clean[, pre_dominance_cols],
-  Post_Valence   = df_clean[, post_valentie_cols],
+  Post_Valence   = df_clean[, post_valence_cols],
   Post_Arousal   = df_clean[, post_arousal_cols],
   Post_Dominance = df_clean[, post_dominance_cols]
 )
@@ -135,13 +135,13 @@ reliability_summary <- data.frame(
 par(mfrow = c(3, 3), mar = c(3, 3, 2, 1), mgp = c(2, 0.7, 0))
 
 # histogram per schaal. visuele controle van data én van de normaalverdelingsassumptie voor ANOVA's.
-hist(sd_summary$pre_valentie,   main = "Pre Valentie",   xlab = "Score")
+hist(sd_summary$pre_valence,   main = "Pre valence",   xlab = "Score")
 hist(sd_summary$pre_arousal,    main = "Pre Arousal",    xlab = "Score")
 hist(sd_summary$pre_dominance,  main = "Pre Dominance",  xlab = "Score")
-hist(sd_summary$post_valentie,  main = "Post Valentie",  xlab = "Score")
+hist(sd_summary$post_valence,  main = "Post valence",  xlab = "Score")
 hist(sd_summary$post_arousal,   main = "Post Arousal",   xlab = "Score")
 hist(sd_summary$post_dominance, main = "Post Dominance", xlab = "Score")
-hist(sd_summary$delta_valentie,  main = "Delta Valentie",  xlab = "Verschil")
+hist(sd_summary$delta_valence,  main = "Delta valence",  xlab = "Verschil")
 hist(sd_summary$delta_arousal,   main = "Delta Arousal",   xlab = "Verschil")
 hist(sd_summary$delta_dominance, main = "Delta Dominance", xlab = "Verschil")
 
@@ -204,15 +204,15 @@ if (sum(missing_per_item > 0) > 0) {
 #deel 2: uitbijters
 cat("\n--- Potential Outliers (±3SD from mean) ---\n")
 outlier_list <- list()
-for (col in c("pre_valentie", "pre_arousal", "pre_dominance",
-              "post_valentie", "post_arousal", "post_dominance")) {
+for (col in c("pre_valence", "pre_arousal", "pre_dominance",
+              "post_valence", "post_arousal", "post_dominance")) {
   outliers <- which(abs(scale(sd_summary[[col]])) > 3)
   if (length(outliers) > 0) {
     cat(col, ": Participant(s)", paste(outliers, collapse = ", "), "\n")
     outlier_list[[col]] <- outliers
   }
 }
-sd_summary[1, c("participant_number", "pre_valentie")]
+sd_summary[1, c("participant_number", "pre_valence")]
 
 if (length(outlier_list) == 0) cat("No extreme outliers detected (±3SD).\n")
 
@@ -261,7 +261,7 @@ pre_vr_summary <- sd_summary %>%
   group_by(Scene) %>%
   summarise(
     n = n(),
-    mean_pre_valentie  = mean(pre_valentie,  na.rm = TRUE), sd_pre_valentie  = sd(pre_valentie,  na.rm = TRUE),
+    mean_pre_valence  = mean(pre_valence,  na.rm = TRUE), sd_pre_valence  = sd(pre_valence,  na.rm = TRUE),
     mean_pre_arousal   = mean(pre_arousal,   na.rm = TRUE), sd_pre_arousal   = sd(pre_arousal,   na.rm = TRUE),
     mean_pre_dominance = mean(pre_dominance, na.rm = TRUE), sd_pre_dominance = sd(pre_dominance, na.rm = TRUE),
     .groups = 'drop'
@@ -269,14 +269,14 @@ pre_vr_summary <- sd_summary %>%
 pre_vr_summary %>% mutate(across(where(is.numeric), ~ round(.x, 2))) %>% print()
 
 #ANOVA uitvoeren op de voormeting per dimensie.
-anova_pre_valentie  <- aov(pre_valentie  ~ Scene, data = sd_summary)
+anova_pre_valence  <- aov(pre_valence  ~ Scene, data = sd_summary)
 anova_pre_arousal   <- aov(pre_arousal   ~ Scene, data = sd_summary)
 anova_pre_dominance <- aov(pre_dominance ~ Scene, data = sd_summary)
 
-print(summary(anova_pre_valentie))
-p_pre_valentie <- summary(anova_pre_valentie)[[1]]["Scene", "Pr(>F)"]
-cat(sprintf("Pre Valence   p = %.4f %s\n", p_pre_valentie,
-            ifelse(p_pre_valentie < 0.05, "Groups differ at baseline", "✓ Equivalent at baseline")))
+print(summary(anova_pre_valence))
+p_pre_valence <- summary(anova_pre_valence)[[1]]["Scene", "Pr(>F)"]
+cat(sprintf("Pre Valence   p = %.4f %s\n", p_pre_valence,
+            ifelse(p_pre_valence < 0.05, "Groups differ at baseline", "✓ Equivalent at baseline")))
 
 print(summary(anova_pre_arousal))
 p_pre_arousal <- summary(anova_pre_arousal)[[1]]["Scene", "Pr(>F)"]
@@ -292,7 +292,7 @@ cat(sprintf("Pre Dominance p = %.4f %s\n", p_pre_dominance,
 #Shapiro-Wilk: toetst of de scores normaal verdeeld zijn binnen elke groep
 for (scene in unique(na.omit(sd_summary$Scene))) {
   cat(sprintf("  Post Valence   - %s: p = %.4f\n", scene,
-              shapiro.test(sd_summary$post_valentie[sd_summary$Scene == scene])$p.value))
+              shapiro.test(sd_summary$post_valence[sd_summary$Scene == scene])$p.value))
 }
 for (scene in unique(na.omit(sd_summary$Scene))) {
   cat(sprintf("  Post Arousal   - %s: p = %.4f\n", scene,
@@ -304,10 +304,10 @@ for (scene in unique(na.omit(sd_summary$Scene))) {
 }
 
 #Levene's test: toetst of de varianties gelijk zijn tussen groepen (homoscedasticiteit)
-levene_valentie  <- leveneTest(post_valentie  ~ Scene, data = sd_summary)
+levene_valence  <- leveneTest(post_valence  ~ Scene, data = sd_summary)
 levene_arousal   <- leveneTest(post_arousal   ~ Scene, data = sd_summary)
 levene_dominance <- leveneTest(post_dominance ~ Scene, data = sd_summary)
-cat("Post Valence:\n");   print(levene_valentie)
+cat("Post Valence:\n");   print(levene_valence)
 cat("Post Arousal:\n");   print(levene_arousal)
 cat("Post Dominance:\n"); print(levene_dominance)
 
@@ -366,11 +366,11 @@ report_anova <- function(label, aov_obj, outcome_var, data) {
 cat("\n\n=== POST-VR ONE-WAY ANOVA (between scenes) ===\n")
 cat("Post-hoc correction: Bonferroni\n")
 
-cat("\n--- POST VALENTIE BY SCENE ---\n")
-anova_post_valentie <- aov(post_valentie ~ Scene, data = sd_summary)
-res_post_valentie   <- report_anova("Post Valentie",  anova_post_valentie, "post_valentie",  sd_summary)
-p_post_valentie     <- res_post_valentie$p
-eta_post_valentie   <- res_post_valentie$eta
+cat("\n--- POST valence BY SCENE ---\n")
+anova_post_valence <- aov(post_valence ~ Scene, data = sd_summary)
+res_post_valence   <- report_anova("Post valence",  anova_post_valence, "post_valence",  sd_summary)
+p_post_valence     <- res_post_valence$p
+eta_post_valence   <- res_post_valence$eta
 
 cat("\n--- POST AROUSAL BY SCENE ---\n")
 anova_post_arousal <- aov(post_arousal ~ Scene, data = sd_summary)
@@ -401,7 +401,7 @@ cat(sprintf("Bonferroni-corrected alpha: %.4f\n\n", alpha_bonf))
 
 scenes     <- c("Bus", "Natuur, met", "Natuur, zonder")
 dimensions <- list(
-  Valence   = list(pre = "pre_valentie",  post = "post_valentie"),
+  Valence   = list(pre = "pre_valence",  post = "post_valence"),
   Arousal   = list(pre = "pre_arousal",   post = "post_arousal"),
   Dominance = list(pre = "pre_dominance", post = "post_dominance")
 )
@@ -500,7 +500,7 @@ post_vr_summary <- sd_summary %>%
   group_by(Scene) %>%
   summarise(
     n = n(),
-    mean_post_valentie  = mean(post_valentie,  na.rm = TRUE), sd_post_valentie  = sd(post_valentie,  na.rm = TRUE),
+    mean_post_valence  = mean(post_valence,  na.rm = TRUE), sd_post_valence  = sd(post_valence,  na.rm = TRUE),
     mean_post_arousal   = mean(post_arousal,   na.rm = TRUE), sd_post_arousal   = sd(post_arousal,   na.rm = TRUE),
     mean_post_dominance = mean(post_dominance, na.rm = TRUE), sd_post_dominance = sd(post_dominance, na.rm = TRUE),
     .groups = 'drop'
@@ -512,11 +512,11 @@ post_vr_summary %>% mutate(across(where(is.numeric), ~ round(.x, 2))) %>% print(
 cat("\n\n=== DELTA (CHANGE SCORES) ANOVA RESULTS ===\n")
 cat("Post-hoc correction: Bonferroni\n\n")
 
-cat("\n--- DELTA VALENTIE BY SCENE ---\n")
-anova_delta_valentie <- aov(delta_valentie ~ Scene, data = sd_summary)
-res_delta_valentie   <- report_anova("Delta Valentie",  anova_delta_valentie,  "delta_valentie",  sd_summary)
-p_delta_valentie     <- res_delta_valentie$p
-eta_delta_valentie   <- res_delta_valentie$eta
+cat("\n--- DELTA valence BY SCENE ---\n")
+anova_delta_valence <- aov(delta_valence ~ Scene, data = sd_summary)
+res_delta_valence   <- report_anova("Delta valence",  anova_delta_valence,  "delta_valence",  sd_summary)
+p_delta_valence     <- res_delta_valence$p
+eta_delta_valence   <- res_delta_valence$eta
 
 cat("\n--- DELTA AROUSAL BY SCENE ---\n")
 anova_delta_arousal <- aov(delta_arousal ~ Scene, data = sd_summary)
@@ -537,7 +537,7 @@ delta_summary <- sd_summary %>%
   group_by(Scene) %>%
   summarise(
     n = n(),
-    mean_delta_valentie  = mean(delta_valentie,  na.rm = TRUE), sd_delta_valentie  = sd(delta_valentie,  na.rm = TRUE),
+    mean_delta_valence  = mean(delta_valence,  na.rm = TRUE), sd_delta_valence  = sd(delta_valence,  na.rm = TRUE),
     mean_delta_arousal   = mean(delta_arousal,   na.rm = TRUE), sd_delta_arousal   = sd(delta_arousal,   na.rm = TRUE),
     mean_delta_dominance = mean(delta_dominance, na.rm = TRUE), sd_delta_dominance = sd(delta_dominance, na.rm = TRUE),
     .groups = 'drop'
@@ -547,7 +547,7 @@ delta_summary %>% mutate(across(where(is.numeric), ~ round(.x, 2))) %>% print()
 #visualisaties
 sd_long <- sd_summary %>%
   select(participant_number, Scene,
-         pre_valentie, post_valentie,
+         pre_valence, post_valence,
          pre_arousal,  post_arousal,
          pre_dominance, post_dominance) %>%
   pivot_longer(
@@ -560,7 +560,7 @@ sd_long <- sd_summary %>%
     time = case_when(time == "pre" ~ "Pre-VR", time == "post" ~ "Post-VR", TRUE ~ time),
     time = factor(time, levels = c("Pre-VR", "Post-VR")),
     dimension = case_when(
-      dimension == "valentie"  ~ "Valence",
+      dimension == "valence"  ~ "Valence",
       dimension == "arousal"   ~ "Arousal",
       dimension == "dominance" ~ "Dominance",
       TRUE ~ dimension
@@ -586,7 +586,7 @@ cat("\n✓ Pre-post line plot saved as 'pre_post_trajectories.png'\n")
 # --- Post-VR boxplots ---
 # FIX: small margins for 1x3 layout
 par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-boxplot(post_valentie  ~ Scene, data = sd_summary, main = "Post-VR Valentie",
+boxplot(post_valence  ~ Scene, data = sd_summary, main = "Post-VR valence",
         ylab = "Score", col = c("lightblue","lightgreen","lightcoral"), ylim = c(0,100))
 boxplot(post_arousal   ~ Scene, data = sd_summary, main = "Post-VR Arousal",
         ylab = "Score", col = c("lightblue","lightgreen","lightcoral"), ylim = c(0,100))
@@ -597,7 +597,7 @@ par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))  # reset
 # --- Delta boxplots ---
 # FIX: small margins for 1x3 layout
 par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-boxplot(delta_valentie  ~ Scene, data = sd_summary, main = "Delta Valentie",
+boxplot(delta_valence  ~ Scene, data = sd_summary, main = "Delta valence",
         ylab = "Change (Post-Pre)", col = c("lightblue","lightgreen","lightcoral"))
 abline(h = 0, lty = 2, col = "gray")
 boxplot(delta_arousal   ~ Scene, data = sd_summary, main = "Delta Arousal",
@@ -616,7 +616,7 @@ eta_label <- function(eta) {
   if (eta < 0.01) "Small" else if (eta < 0.06) "Medium" else "Large"
 }
 
-eta_pre_valentie  <- calc_eta_squared(anova_pre_valentie)
+eta_pre_valence  <- calc_eta_squared(anova_pre_valence)
 eta_pre_arousal   <- calc_eta_squared(anova_pre_arousal)
 eta_pre_dominance <- calc_eta_squared(anova_pre_dominance)
 
@@ -624,29 +624,29 @@ pvalue_overview <- data.frame(
   Analysis_Type = c(rep("PRE-VR",3), rep("POST-VR",3), rep("DELTA",3)),
   Dimension     = rep(c("Valence","Arousal","Dominance"), 3),
   P_Value = round(c(
-    p_pre_valentie,  p_pre_arousal,  p_pre_dominance,
-    p_post_valentie, p_post_arousal, p_post_dominance,
-    p_delta_valentie, p_delta_arousal, p_delta_dominance
+    p_pre_valence,  p_pre_arousal,  p_pre_dominance,
+    p_post_valence, p_post_arousal, p_post_dominance,
+    p_delta_valence, p_delta_arousal, p_delta_dominance
   ), 4),
   Effect_Size_EtaSq = round(c(
-    eta_pre_valentie,  eta_pre_arousal,  eta_pre_dominance,
-    eta_post_valentie, eta_post_arousal, eta_post_dominance,
-    eta_delta_valentie, eta_delta_arousal, eta_delta_dominance
+    eta_pre_valence,  eta_pre_arousal,  eta_pre_dominance,
+    eta_post_valence, eta_post_arousal, eta_post_dominance,
+    eta_delta_valence, eta_delta_arousal, eta_delta_dominance
   ), 4),
   Effect_Interpretation = c(
-    eta_label(eta_pre_valentie),  eta_label(eta_pre_arousal),  eta_label(eta_pre_dominance),
-    eta_label(eta_post_valentie), eta_label(eta_post_arousal), eta_label(eta_post_dominance),
-    eta_label(eta_delta_valentie), eta_label(eta_delta_arousal), eta_label(eta_delta_dominance)
+    eta_label(eta_pre_valence),  eta_label(eta_pre_arousal),  eta_label(eta_pre_dominance),
+    eta_label(eta_post_valence), eta_label(eta_post_arousal), eta_label(eta_post_dominance),
+    eta_label(eta_delta_valence), eta_label(eta_delta_arousal), eta_label(eta_delta_dominance)
   ),
   Significant_p05 = c(
-    p_pre_valentie  < 0.05, p_pre_arousal  < 0.05, p_pre_dominance  < 0.05,
-    p_post_valentie < 0.05, p_post_arousal < 0.05, p_post_dominance < 0.05,
-    p_delta_valentie < 0.05, p_delta_arousal < 0.05, p_delta_dominance < 0.05
+    p_pre_valence  < 0.05, p_pre_arousal  < 0.05, p_pre_dominance  < 0.05,
+    p_post_valence < 0.05, p_post_arousal < 0.05, p_post_dominance < 0.05,
+    p_delta_valence < 0.05, p_delta_arousal < 0.05, p_delta_dominance < 0.05
   ),
   Significant_p01 = c(
-    p_pre_valentie  < 0.01, p_pre_arousal  < 0.01, p_pre_dominance  < 0.01,
-    p_post_valentie < 0.01, p_post_arousal < 0.01, p_post_dominance < 0.01,
-    p_delta_valentie < 0.01, p_delta_arousal < 0.01, p_delta_dominance < 0.01
+    p_pre_valence  < 0.01, p_pre_arousal  < 0.01, p_pre_dominance  < 0.01,
+    p_post_valence < 0.01, p_post_arousal < 0.01, p_post_dominance < 0.01,
+    p_delta_valence < 0.01, p_delta_arousal < 0.01, p_delta_dominance < 0.01
   ),
   Desired_Outcome = c(rep("p > 0.05 (equiv)",3), rep("p < 0.05 (diff)",3), rep("p < 0.05 (diff)",3))
 )
@@ -699,7 +699,7 @@ item_summary <- item_wide %>%
 item_summary <- item_summary %>%
   mutate(
     Dimension = case_when(
-      item_clean %in% str_replace(pre_valentie_cols,  "pre_vr_", "") ~ "Valence",
+      item_clean %in% str_replace(pre_valence_cols,  "pre_vr_", "") ~ "Valence",
       item_clean %in% str_replace(pre_arousal_cols,   "pre_vr_", "") ~ "Arousal",
       item_clean %in% str_replace(pre_dominance_cols, "pre_vr_", "") ~ "Dominance",
       TRUE ~ "Other"
@@ -726,12 +726,12 @@ dimension_summary_clean <- dimension_summary %>%
 
 #Delta boxplots voor in het verslag
 delta_long <- sd_summary %>%
-  select(participant_number, Scene, delta_valentie, delta_arousal, delta_dominance) %>%
-  pivot_longer(c(delta_valentie, delta_arousal, delta_dominance),
+  select(participant_number, Scene, delta_valence, delta_arousal, delta_dominance) %>%
+  pivot_longer(c(delta_valence, delta_arousal, delta_dominance),
                names_to = "Dimension", values_to = "delta") %>%
   mutate(
     Dimension = dplyr::recode(Dimension,
-                       delta_valentie  = "Valence",
+                       delta_valence  = "Valence",
                        delta_arousal   = "Arousal",
                        delta_dominance = "Dominance"),
     Dimension = factor(Dimension, levels = c("Valence", "Arousal", "Dominance")),
