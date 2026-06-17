@@ -22,12 +22,6 @@ df$participant_number <- as.numeric(as.character(df$participant_number))
 start_col <- which(names(df) == "participant_number")
 df_clean <- df[, start_col:ncol(df)]
 
-#NA omzetten naar 0
-
-df_clean[] <- lapply(df_clean, function(x) {
-  x[is.na(x)] <- 0
-  x
-})
 
 #welke Items horen bij valentie, pre en post
 pre_valentie_cols <- c(
@@ -69,6 +63,14 @@ post_dominance_cols <- c(
 sd_cols <- c(pre_valentie_cols, post_valentie_cols,
              pre_arousal_cols,  post_arousal_cols,
              pre_dominance_cols, post_dominance_cols)
+
+#NA omzetten naar 0 — maar NIET voor de SAM-items.
+#Lege SAM-velden blijven NA, zodat ze niet als een echte 0 meetellen in de gemiddeldes.
+fill_cols <- setdiff(names(df_clean), sd_cols)
+df_clean[fill_cols] <- lapply(df_clean[fill_cols], function(x) {
+  x[is.na(x)] <- 0
+  x
+})
 
 #langs elke kolom en maak numeric
 df_clean[sd_cols] <- lapply(df_clean[sd_cols], as.numeric)
@@ -722,3 +724,39 @@ dimension_summary_clean <- dimension_summary %>%
   mutate(across(c(mean_pre, mean_post, mean_delta), ~ round(.x, 2))) %>%
   arrange(Scene, Dimension)
 
+#Delta boxplots voor in het verslag
+delta_long <- sd_summary %>%
+  select(participant_number, Scene, delta_valentie, delta_arousal, delta_dominance) %>%
+  pivot_longer(c(delta_valentie, delta_arousal, delta_dominance),
+               names_to = "Dimension", values_to = "delta") %>%
+  mutate(
+    Dimension = dplyr::recode(Dimension,
+                       delta_valentie  = "Valence",
+                       delta_arousal   = "Arousal",
+                       delta_dominance = "Dominance"),
+    Dimension = factor(Dimension, levels = c("Valence", "Arousal", "Dominance")),
+    Scene = dplyr::recode(Scene,
+                   "Natuur, zonder" = "Natuur\nzonder geluid",
+                   "Natuur, met"    = "Natuur\nmet geluid",
+                   "Bus"            = "Busrit"),
+    Scene = factor(Scene, levels = c("Natuur\nzonder geluid",
+                                     "Natuur\nmet geluid", "Busrit"))
+  )
+
+scene_cols <- c("Natuur\nzonder geluid" = "#A6D9B8",   # lichtgroen
+                "Natuur\nmet geluid"    = "#4DA373",   # groen
+                "Busrit"                = "#B0B4B2")   # grijs
+
+ggplot(delta_long, aes(Scene, delta, fill = Scene)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_boxplot(width = 0.6, colour = "grey25", outlier.shape = 1) +
+  facet_wrap(~ Dimension, scales = "free_y") +
+  scale_fill_manual(values = scene_cols) +
+  labs(x = NULL, y = "Verandering (post − pre)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position    = "none",
+        strip.text         = element_text(face = "bold", size = 14, colour = "#2E7D5B"),
+        panel.grid.minor   = element_blank(),
+        panel.grid.major.x = element_blank())
+
+ggsave("delta_boxplots.png", width = 11, height = 4.5, dpi = 300)
